@@ -1,0 +1,6 @@
+import {RichText} from './RichText';
+import React,{useState} from 'react';
+export function GuidedExperiments({unit,onApply}){
+ const [opened,setOpened]=useState(0),[revealed,setRevealed]=useState(new Set());
+ return <section className="guided-experiments"><div className="section-heading"><div><span className="eyebrow">带着问题操作</span><h2>实验任务</h2></div><span>{unit.experiments.length} 个任务 · 先预测，再验证</span></div>{unit.experiments.map((task,i)=><article className={`guided-task ${opened===i?'open':''}`} key={task.title}><button className="guided-title" aria-expanded={opened===i} onClick={()=>setOpened(opened===i?-1:i)}><span>{String(i+1).padStart(2,'0')}</span><strong>{task.title}</strong><span>{opened===i?'−':'+'}</span></button>{opened===i&&<div className="guided-body"><p className="prediction"><strong>先预测</strong><RichText>{task.predict}</RichText></p><ol>{task.steps.map(step=><li key={step}><RichText>{step}</RichText></li>)}</ol><div className="guided-actions"><button className="primary-button" onClick={()=>onApply(task.params)}>载入这组实验参数 ↑</button><button className="text-link" onClick={()=>setRevealed(old=>new Set([...old,i]))}>查看观察结果与解释</button></div>{revealed.has(i)&&<div className="observation-answer"><h3>应该观察到</h3><p><RichText>{task.expected}</RichText></p><h3>用原理解释</h3><p><RichText>{task.why}</RichText></p></div>}</div>}</article>)}</section>;
+}

@@ -1,0 +1,10 @@
+{
+  "parts": [
+    "clang-part-0.wasm",
+    "clang-part-1.wasm",
+    "clang-part-2.wasm",
+    "clang-part-3.wasm"
+  ],
+  "bytes": 31214472,
+  "sha256": "2a466f0e990329d3230b869d04fc20803eae96a7feb3a3f6c93e25a77b8aed1d"
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "id": 0,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw0/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/02/pa0.zip",
+    "sha256": "fbaf74803f1ca352fb4934c126119119f5842445e1c09466282cdeedc7d8fd24"
+  },
+  {
+    "id": 1,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw1/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/02/Assignment1.zip",
+    "sha256": "1c37bf69b724e77c433cbd8b872c425dec2af79a30b21ee17d9ccb175386de1f"
+  },
+  {
+    "id": 2,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw2/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/03/Assignment2.zip",
+    "sha256": "f26e1218ab5c953d6432dd84b41110350f55f80b2ea8da4d6e1bd62ccfcde909"
+  },
+  {
+    "id": 3,
+    "post": "https://games-cn.org/forums/topic/%E4%BD%9C%E4%B8%9A3%E6%9B%B4%E6%AD%A3%E5%85%AC%E5%91%8A/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/03/Assignment3.zip",
+    "sha256": "a3bba307c7365f421373886f0ac4550a2ecd00be6fd878c0e279611c9c7a698e"
+  },
+  {
+    "id": 4,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw4/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/03/Assignment4.zip",
+    "sha256": "07075285fce9db11d1331274bd23dd49f33bc01dd4d8dab64e4cf6d2b54330c6"
+  },
+  {
+    "id": 5,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw5/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/03/Assignment5.zip",
+    "sha256": "33ecbe6a4c4165c61090d5c9ebb14cf168b5b6400f658579235fc0a86e16a02c"
+  },
+  {
+    "id": 6,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw6/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/03/PA6.zip",
+    "sha256": "fcbe1ee4fc23ecd37240c5a850963267ec366536acfe2eea8b2f65079ba4b384"
+  },
+  {
+    "id": 7,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw7/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/04/PA7-1.zip",
+    "sha256": "ec83b507ecf79c026816d607a878a0efa24e524f78d33721bb2071f809c2cede"
+  },
+  {
+    "id": 8,
+    "post": "https://games-cn.org/forums/topic/graphics-intro-hw8/",
+    "archive": "https://games-cn.org/wp-content/uploads/2020/04/assignment8.zip",
+    "sha256": "01ea87002acefd4c8c4992fc39aa792f42cab4e6eec8930c8a506b1d886d10eb"
+  }
+]

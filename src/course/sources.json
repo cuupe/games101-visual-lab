@@ -1,0 +1,156 @@
+[
+  {
+    "id": 1,
+    "pages": 48,
+    "bytes": 55531380,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_01.pdf",
+    "sha256": "7069b8c19d014db92e94bcc4d5afd0184a3b12c0ab85d77eecea1b2a54373809"
+  },
+  {
+    "id": 2,
+    "pages": 42,
+    "bytes": 12873787,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_02.pdf",
+    "sha256": "5246adcbfdcfcb0ecbb0e5b4552475911063c43cfaace6bd41fa34e9b945775c"
+  },
+  {
+    "id": 3,
+    "pages": 41,
+    "bytes": 6321623,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_03.pdf",
+    "sha256": "9f3b1b4f1824e733f5d7d49a220b50c684d5a38ffb5cd7df5e97e55f6ce2d676"
+  },
+  {
+    "id": 4,
+    "pages": 37,
+    "bytes": 4953517,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_04.pdf",
+    "sha256": "2bdf6827ba3fa7438cf68e72dd81f1f3d19b9ffa65c20f6d0797bf9c5eb395e8"
+  },
+  {
+    "id": 5,
+    "pages": 54,
+    "bytes": 7577315,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_05.pdf",
+    "sha256": "40c8876ef1cbfeb8b766ff20b238ee233b73fcf6af3b18450fd98906ae840ff4"
+  },
+  {
+    "id": 6,
+    "pages": 71,
+    "bytes": 11262962,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_06.pdf",
+    "sha256": "6a992a754d91229ba483317a9983f3caa66da0f161156a28c0891dd4bc4f3dc7"
+  },
+  {
+    "id": 7,
+    "pages": 29,
+    "bytes": 13083825,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_07.pdf",
+    "sha256": "6c355f548319deb92caec13f63f64aeb7a4babca1617aa63ccdcf1ebaab28cc7"
+  },
+  {
+    "id": 8,
+    "pages": 45,
+    "bytes": 44644292,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_08.pdf",
+    "sha256": "b21de43d83dcec6e904080839d8f25ea758f36f1b89897efc65da68930156b9b"
+  },
+  {
+    "id": 9,
+    "pages": 47,
+    "bytes": 30418283,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_09.pdf",
+    "sha256": "1261b63be7a67e8c32a6b4c779ab0e2be2722ae5631fccd944d54a47e3e1bb39"
+  },
+  {
+    "id": 10,
+    "pages": 54,
+    "bytes": 37344805,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_10.pdf",
+    "sha256": "69876c33d4d3079d6a0f8d96517322696dcb108eff2b3f3b2cdd5bf9de25066f"
+  },
+  {
+    "id": 11,
+    "pages": 51,
+    "bytes": 21402978,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_11.pdf",
+    "sha256": "097e1e390c2af17194bbcb029ac71cb85d3f389898131c2f18069cea6b77b259"
+  },
+  {
+    "id": 12,
+    "pages": 48,
+    "bytes": 30696370,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_12.pdf",
+    "sha256": "d02e730cce874550aba707be108321c6777c1e20e21e94245a593a7ba9d04394"
+  },
+  {
+    "id": 13,
+    "pages": 41,
+    "bytes": 16517845,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_13.pdf",
+    "sha256": "58003fcd3f80d87e67d5ebbe333a4ab9b40025d3e80521d20367f7a3613404bc"
+  },
+  {
+    "id": 14,
+    "pages": 54,
+    "bytes": 9860775,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_14.pdf",
+    "sha256": "3ab4cc4dde57f587ebbb62b7dc3880bd80bb0ca4cfedd18cf822fefc2b28a46f"
+  },
+  {
+    "id": 15,
+    "pages": 49,
+    "bytes": 23774513,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_15.pdf",
+    "sha256": "b27f75bc0eb2b0294b238be1542fad46cb86b1b0ecb2ea8023e8a6df2d8e635d"
+  },
+  {
+    "id": 16,
+    "pages": 50,
+    "bytes": 13133483,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_16.pdf",
+    "sha256": "7ca9bb7f6c448f448ab37c6be7fdfed02eaf913e0223e1d41ce2ec09268c4d79"
+  },
+  {
+    "id": 17,
+    "pages": 48,
+    "bytes": 37085328,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_17.pdf",
+    "sha256": "c83a738bc6c51d0ce5b19d494a06bf72167436fc194875ac04e706b5d6315bfc"
+  },
+  {
+    "id": 18,
+    "pages": 105,
+    "bytes": 101020814,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_18.pdf",
+    "sha256": "6b7f7ede052cf8e5aa2014cdc0a71cd6c95bc92b7996a4f733b691ded80ac136"
+  },
+  {
+    "id": 19,
+    "pages": 63,
+    "bytes": 10444928,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_19.pdf",
+    "sha256": "316e1ef60e7b3daf241d044238ca2ed8253bf39ba5da9f90925a84e0edf21272"
+  },
+  {
+    "id": 20,
+    "pages": 98,
+    "bytes": 15961672,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_20.pdf",
+    "sha256": "78779dc405f8210489ad688a472581b649a2b702806b61adba896ee19a248155"
+  },
+  {
+    "id": 21,
+    "pages": 85,
+    "bytes": 29756865,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_21.pdf",
+    "sha256": "aebbb4f281083fdf1bac84ff42e2bd501944189e00c76dbb520dd61594849712"
+  },
+  {
+    "id": 22,
+    "pages": 37,
+    "bytes": 15874427,
+    "url": "https://sites.cs.ucsb.edu/~lingqi/teaching/resources/GAMES101_Lecture_22.pdf",
+    "sha256": "b2c15316a45a16d7b933e4c171734674bdc12a7840ecede1bf0744d72d6534bc"
+  }
+]
