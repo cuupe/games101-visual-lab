@@ -29,6 +29,7 @@ npm run dev
 npm test
 npm run illustrations
 node scripts/check-runtime.cjs
+node scripts/check-sandbox.cjs
 node scripts/check-homework.cjs
 npm run build
 ```
@@ -41,9 +42,23 @@ npm run build
 
 浏览器 Worker 内运行 Clang 8.0.1、LLD、WASI libc/libc++；无需远程编译服务器。首次使用下载约 60 MB 工具链，Eigen 另约 5 MB。代码修改保存在当前浏览器的 IndexedDB；建议定期下载工作区备份。
 
-运行时为 120 秒、512 MiB 程序内存和 200 KB 文本输出限制；可立即停止。工具链属于 2019 年版本，不支持原生桌面 GUI、完整 OpenCV、线程、C++ 异常或任意系统软件包。网页适配实现作业使用的图像操作子集，以 PPM 代替桌面窗口；每个项目展示改动说明。
+用户 C++ 只在浏览器内执行，没有远程执行接口。程序仅能导入明确允许的 WASI 系统调用；无法调用 shell、进程、网络、DOM、浏览器存储或虚拟文件系统内部函数。编译器与程序使用独立内存文件系统，运行环境只包含本次项目文件、模型/纹理资产及约定输出，不继承编译器头文件、库和对象文件。此处依赖浏览器和 WebAssembly 的隔离机制，未声称防御浏览器引擎自身漏洞。原理参考 [WebAssembly 安全模型](https://webassembly.org/docs/security/) 与 [导入机制](https://webassembly.org/docs/portability/)。
+
+程序运行最多 30 秒，编译与运行总计最多 120 秒；主线程看门狗或“停止”按钮会销毁 Worker。程序、Clang 和 LLD 的线性内存各限 512 MiB，虚拟文件系统模块限 256 MiB；这不是整个浏览器进程的总内存额度。虚拟文件单个限 16 MiB，合计文件数据限 64 MiB。标准输出在 UTF-8 解码前按字节计数，最多 200 KiB，分批传给页面。项目最多 96 个文件/32 个 C++ 入口、总计 24 MiB，单个输入文件最多 8 MiB；标准输入最多 64 KiB，参数最多 32 个/合计 8 KiB。路径、Base64、导入备份、浏览器保存数据和 Worker 请求均经过结构与资源校验。结果总量最多 16 MiB，图像最多 400 万像素，CSV 预览最多 512 KiB/20000 点，错误结果可下载但不会无限展开。
+
+`node scripts/check-sandbox.cjs` 通过真实 Clang/LLD 编译资源攻击和正常控制程序：单次大输出、UTF-8 小消息洪泛、超大文件、累计文件耗尽、超限内存增长、非法系统调用指针与过长路径。每个测试另有独立 Worker 超时保护。`npm test` 检查能力白名单拒绝内部/网络/Canvas 导入、输入验证、CSV 边界、内存最大值、停止与看门狗清理。浏览器另实测死循环被自动终止并能重新运行；官方作业 0–8 保持真实编译执行。
+
+工具链属于 2019 年版本，不支持原生桌面 GUI、完整 OpenCV、线程、C++ 异常或任意系统软件包。网页适配实现作业使用的图像操作子集，以 PPM 代替桌面窗口；每个项目展示改动说明。
 
 `public/compiler/NOTICE.md` 记录工具链来源、许可、UTF-8/时钟适配和文件读取修复。`scripts/rebuild-memfs.cjs` 使用随站工具链重建修复后的虚拟文件系统。`scripts/chunk-compiler.cjs` 生成托管分片，Worker 重组后验证 SHA-256，编译器原字节不变。
+
+## GitHub Pages 托管
+
+这是纯静态网站，GitHub Pages 只分发 HTML/JS/WASM/作业资产，学生代码不会提交到 Actions 或服务器运行。Vite 使用相对资源路径，适用于仓库子目录。生产构建约 88 MiB（实际大小以 dist 为准），低于 Pages 的 1 GiB 网站限制；首次 C++ 使用仍会下载较大的工具链。
+
+仓库当前为私有；GitHub Free 的 Pages 仅支持公开仓库，私有仓库需要 Pro/Team/Enterprise 等受支持方案。Pages 网站通常公开可访问，即使源码仓库保持私有；仓库与网站可见性是两个不同设置。参见 [官方可用方案与限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)。
+
+部署配置已在 `.github/workflows/pages.yml` 准备好，只能手动触发。确认账户支持和网站访问范围后，在仓库 Settings → Pages 将 Source 设为 GitHub Actions，再在 Actions 中手动运行 “Publish learning site to GitHub Pages”。工作流先测试沙箱和构建，再发布 dist；无需 C++ 后端、访问令牌或数据库密钥。
 
 ## 官方来源与第三方许可
 

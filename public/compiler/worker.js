@@ -1,11 +1,15 @@
 /* Browser-only C++17 runner. Third-party compiler: ./provenance.json. */
-importScripts('./shared.js');
-let outputSize=0;
-const write=text=>{
- outputSize+=text.length;
- if(outputSize>200000)throw new Error('输出超过 200 KB，请减少循环打印。');
- postMessage({type:'output',text:text.replace(/\x1b\[[0-9;]*m/g,'')});
+importScripts('./sandbox-policy.js','./shared.js');
+const policy=Games101Sandbox;
+let outputSize=0,buffer='',started=false;
+const flush=()=>{if(buffer){postMessage({type:'output',text:buffer});buffer='';}};
+const reserveOutput=bytes=>{outputSize+=bytes;if(outputSize>policy.limits.outputBytes)throw new Error('标准输出超过 200 KiB，已终止。请减少循环打印。');};
+const write=(text,reserved=false)=>{
+ if(!reserved)reserveOutput(new TextEncoder().encode(text).length);
+ buffer+=text.replace(/\x1b\[[0-9;]*m/g,'');
+ if(buffer.length>=4096)flush();
 };
+const status=(phase,stage)=>{flush();postMessage({type:'status',phase,stage});};
 async function readBuffer(name){
  if(name==='clang'){
   const manifestResponse=await fetch(new URL('clang-parts.json',self.location.href));
@@ -18,6 +22,7 @@ async function readBuffer(name){
   if(offset!==manifest.bytes||hash!==manifest.sha256)throw new Error('Clang 数据校验失败，请刷新后重试');
   return bytes.buffer;
  }
+ if(!['lld','sysroot.tar','memfs-fixed.wasm','clang-part-0.wasm','clang-part-1.wasm','clang-part-2.wasm','clang-part-3.wasm'].includes(name))throw new Error('不允许加载此编译器资源');
  const response=await fetch(new URL(name,self.location.href));
  if(!response.ok)throw new Error(`无法加载 ${name}：HTTP ${response.status}`);
  return response.arrayBuffer();
@@ -25,20 +30,23 @@ async function readBuffer(name){
 function addFiles(api,files){
  const dirs=new Set();
  for(const file of files){
-  if(!/^[a-zA-Z0-9_./ -]+$/.test(file.path)||file.path.startsWith('/')||file.path.split('/').includes('..'))throw new Error(`无效工作区路径：${file.path}`);
   const parts=file.path.split('/');
   for(let i=1;i<parts.length;i++)dirs.add(parts.slice(0,i).join('/'));
  }
  for(const dir of [...dirs].sort((a,b)=>a.split('/').length-b.split('/').length))api.memfs.addDirectory(dir);
- for(const file of files)api.memfs.addFile(file.path,file.base64?Uint8Array.from(atob(file.base64),c=>c.charCodeAt(0)):new TextEncoder().encode(file.content));
+ for(const file of files)api.memfs.addFile(file.path,typeof file.base64==='string'?Uint8Array.from(atob(file.base64),c=>c.charCodeAt(0)):new TextEncoder().encode(file.content));
 }
 self.onmessage=async({data})=>{
+ if(started){postMessage({type:'error',phase:'安全检查',message:'每个 Worker 只接受一次运行'});return;}
+ started=true;
  outputSize=0;
- let phase='加载编译器';
+ let phase='安全检查';
  try{
-  if(!Array.isArray(data.files)||data.files.length>600||data.files.reduce((n,f)=>n+(f.content?.length||f.base64?.length||0),0)>24000000)throw new Error('项目大小超过当前实验限制。');
-  postMessage({type:'status',phase});
-  const api=new API({memfs:'memfs-fixed.wasm',readBuffer,compileStreaming:async name=>WebAssembly.compile(await readBuffer(name)),hostWrite:write});
+  policy.validateJob(data);
+  phase='加载编译器';status(phase,'compile');
+  const compileStreaming=async name=>WebAssembly.compile(policy.boundMemory(await readBuffer(name),name==='memfs-fixed.wasm'?policy.limits.fsMemory:policy.limits.compilerMemory));
+  const options={memfs:'memfs-fixed.wasm',readBuffer,compileStreaming,hostWrite:write,reserveOutput};
+  const api=new API(options);
   await api.ready;
   if(data.eigen){
    const response=await fetch(new URL('./eigen.json',self.location.href));
@@ -46,26 +54,32 @@ self.onmessage=async({data})=>{
    addFiles(api,(await response.json()).files);
   }
   addFiles(api,data.files);
-  for(const name of ['output.ppm','binary.ppm','rope.csv'])api.memfs.addFile(name,new Uint8Array());
-  api.memfs.setStdinStr(data.stdin||'');
   const clang=await api.getModule('clang');
   const objects=[];
   for(const filename of data.sources){
    if(!data.files.some(f=>f.path===filename)||!filename.endsWith('.cpp'))throw new Error('编译入口必须是项目中的 .cpp 文件');
-   phase=`编译 ${filename}`;postMessage({type:'status',phase});
+   phase=`编译 ${filename}`;status(phase,'compile');
    const object=`web-${objects.length}.o`;objects.push(object);
    await api.run(clang,'clang','-cc1','-emit-obj',...api.clangCommonArgs,'-std=c++17','-O1','-I.','-I/eigen3','-include','web_platform.hpp','-DGAMES101_WEB=1','-Wno-unused-value','-o',object,'-x','c++',filename);
   }
-  phase='链接 WebAssembly';postMessage({type:'status',phase});
+  phase='链接 WebAssembly';status(phase,'compile');
   const linker=await api.getModule('lld');
   await api.run(linker,'wasm-ld','--no-threads','-z','stack-size=8388608','--max-memory=536870912','-Llib/wasm32-wasi','lib/wasm32-wasi/crt1.o',...objects,'-lc','-lc++','-lc++abi','-lcanvas','-o','program.wasm');
-  const program=await WebAssembly.compile(api.memfs.getFileContents('program.wasm'));
-  phase='运行程序';postMessage({type:'status',phase});
-  await api.run(program,'program.wasm',...(data.args||[]));
+  const program=await WebAssembly.compile(policy.boundMemory(api.memfs.getFileContents('program.wasm'),policy.limits.programMemory));
+  // The guest never inherits compiler headers, libraries, objects or toolchain memory.
+  const runtime=new API({...options,skipSysroot:true,programSandbox:true});
+  await runtime.ready;addFiles(runtime,data.files);
+  for(const name of policy.outputNames)runtime.memfs.addFile(name,new Uint8Array());
+  runtime.memfs.setStdinStr(data.stdin||'');
+  phase='运行程序';status(phase,'run');
+  await runtime.run(program,'program.wasm',...(data.args||[]));
   const outputs=[];
-  for(const name of ['output.ppm','binary.ppm','rope.csv']){
-   try{const content=api.memfs.getFileContents(name);if(content.length&&content.length<16000000)outputs.push({name,bytes:content.slice()});}catch{}
+  let resultSize=0;
+  for(const name of policy.outputNames){
+   const content=runtime.memfs.getFileContents(name);
+   if(content.length){resultSize+=content.length;if(resultSize>policy.limits.resultBytes)throw new Error('程序结果总量超过 16 MiB');outputs.push({name,bytes:content.slice()});}
   }
+  flush();
   postMessage({type:'done',outputs},outputs.map(f=>f.bytes.buffer));
- }catch(error){postMessage({type:'error',phase,message:error.message||String(error)});}
+ }catch(error){flush();postMessage({type:'error',phase,message:String(error.message||error).slice(0,2000)});}
 };

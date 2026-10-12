@@ -27,9 +27,22 @@ MPL-2.0; individual files and COPYING files contain the applicable terms.
 This is an in-browser WASI sandbox, not a remote native Linux installation.
 Compilation and execution run in a dedicated Web Worker with an in-memory filesystem.
 No shell, host filesystem, network API, native OpenCV, GLFW, threads, package installer,
-or debugging backend is exposed to student C++ programs. The parent terminates a run
-after 120 seconds and supports immediate Stop. Output is capped at 200 KB.
-The program's linear memory is limited to 512 MiB. Compiler peak memory may differ.
+or debugging backend is exposed to student C++ programs. The parent terminates
+program execution after 30 seconds, or the whole job after 120 seconds, and
+supports immediate Stop. UTF-8 output is capped at 200 KiB before decoding and
+delivered in batches. Programs may only import explicitly allowlisted WASI
+functions; memfs internals and Canvas imports are excluded. The runtime filesystem
+is separate from the compiler filesystem and contains only project data and
+designated output files. sandbox-policy.js validates the editor, backup, stored
+changes, Worker requests and returned results.
+The program, Clang and LLD each have a 512 MiB linear-memory maximum, applied to
+loaded toolchain bytes in memory without altering the upstream copies on disk.
+Clang's original bytes are SHA-256 verified before this memory-limit adjustment.
+The rebuilt memfs has a 256 MiB memory maximum, a 16 MiB per-file data quota and
+64 MiB aggregate file-data quota. Local C patches bound file growth, release
+truncated/deleted data, correct the fd upper bound and avoid overreading a
+preopened directory name. JS validates guest iovecs and path bounds before C
+syscalls. Total browser memory additionally includes compiler buffers and UI.
 Supported syntax and standard library are bounded by the bundled 2019 toolchain.
 
 OpenCV-compatible teaching adapters implement only the specific pixel, point, and

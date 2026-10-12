@@ -7,7 +7,7 @@ async function check(id){
   fetch:async url=>{const name=path.join(root,new URL(url,'https://test.local/compiler/').pathname);return {ok:fs.existsSync(name),arrayBuffer:async()=>new Uint8Array(fs.readFileSync(name)).buffer,json:async()=>JSON.parse(fs.readFileSync(name,'utf8'))};},
   postMessage:message=>{if(message.type==='output')log+=message.text;if(message.type==='error')error=message;if(message.type==='done')outputs=message.outputs;},
  });
- context.importScripts=()=>vm.runInContext(fs.readFileSync(path.join(root,'compiler/shared.js'),'utf8'),context);
+ context.importScripts=(...names)=>names.forEach(name=>vm.runInContext(fs.readFileSync(path.join(root,'compiler',path.basename(name)),'utf8'),context));
  vm.runInContext(fs.readFileSync(path.join(root,'compiler/worker.js'),'utf8'),context);
  const project=JSON.parse(fs.readFileSync(path.join(root,`homework/project-${id}.json`),'utf8'));
  await context.self.onmessage({data:project});

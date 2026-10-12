@@ -5,7 +5,7 @@ const context=vm.createContext({console,WebAssembly,TextEncoder,TextDecoder,Uint
  fetch:async url=>{const file=path.join(root,path.basename(new URL(url).pathname));return {ok:fs.existsSync(file),arrayBuffer:async()=>new Uint8Array(fs.readFileSync(file)).buffer,json:async()=>JSON.parse(fs.readFileSync(file,'utf8'))};},
  postMessage:m=>{if(m.type==='output')log+=m.text;if(m.type==='error')error=m;if(m.type==='done')done=true;}
 });
-context.importScripts=()=>vm.runInContext(fs.readFileSync(path.join(root,'shared.js'),'utf8'),context);
+context.importScripts=(...names)=>names.forEach(name=>vm.runInContext(fs.readFileSync(path.join(root,path.basename(name)),'utf8'),context));
 vm.runInContext(fs.readFileSync(path.join(root,'worker.js'),'utf8'),context);
 const source=`#include <iostream>
 #include <fstream>

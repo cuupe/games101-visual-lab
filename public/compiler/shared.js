@@ -105,6 +105,7 @@ class Memory {
     this.buffer = this.memory.buffer;
     this.u8 = new Uint8Array(this.buffer);
     this.u32 = new Uint32Array(this.buffer);
+    this.view = new DataView(this.buffer);
   }
 
   check() {
@@ -112,13 +113,14 @@ class Memory {
       this.buffer = this.memory.buffer;
       this.u8 = new Uint8Array(this.buffer);
       this.u32 = new Uint32Array(this.buffer);
+      this.view = new DataView(this.buffer);
     }
   }
 
   read8(o) { return this.u8[o]; }
-  read32(o) { return this.u32[o >> 2]; }
+  read32(o) { return this.view.getUint32(o, true); }
   write8(o, v) { this.u8[o] = v; }
-  write32(o, v) { this.u32[o >> 2] = v; }
+  write32(o, v) { this.view.setUint32(o, v, true); }
   write64(o, vlo, vhi = 0) { this.write32(o, vlo); this.write32(o + 4, vhi); }
 
   readStr(o, len) {
@@ -149,6 +151,8 @@ class MemFS {
   constructor(options) {
     const compileStreaming = options.compileStreaming;
     this.hostWrite = options.hostWrite;
+    this.reserveOutput = options.reserveOutput || (() => {});
+    this.programSandbox = !!options.programSandbox;
     this.stdinStr = options.stdinStr || "";
     this.stdinBytes = new TextEncoder().encode(this.stdinStr);
     this.outputDecoders = {1: new TextDecoder(), 2: new TextDecoder()};
@@ -159,7 +163,7 @@ class MemFS {
 
     // Imports for memfs module.
     const env = getImportObject(
-        this, [ 'abort', 'host_write', 'host_read', 'memfs_log', 'copy_in', 'copy_out' ]);
+        this, [ 'abort', 'resource_limit', 'host_write', 'host_read', 'memfs_log', 'copy_in', 'copy_out' ]);
 
     this.ready = compileStreaming(this.memfsFilename)
                      .then(module => WebAssembly.instantiate(module, {env}))
@@ -208,10 +212,42 @@ class MemFS {
   }
 
   abort() { throw new AbortError(); }
+  resource_limit() { throw new AbortError('虚拟文件系统超过限制：单文件 16 MiB，总文件数据 64 MiB'); }
+
+  range(ptr, length) {
+    this.hostMem_.check();
+    if(!Number.isInteger(ptr) || !Number.isInteger(length) || ptr<0 || length<0 || ptr>this.hostMem_.buffer.byteLength-length) throw new AbortError('WASI 指针越界');
+  }
+
+  iovecs(ptr, count, result) {
+    if(!Number.isInteger(count) || count<0 || count>1024) throw new AbortError('WASI iovec 数量超过 1024');
+    this.range(ptr,count*8);this.range(result,4);
+    const view=new DataView(this.hostMem_.buffer);let total=0;
+    for(let i=0;i<count;i++) {
+      const buffer=view.getUint32(ptr+i*8,true),length=view.getUint32(ptr+i*8+4,true);
+      this.range(buffer,length);total+=length;
+      if(total>0xffffffff) throw new AbortError('WASI I/O 长度溢出');
+    }
+    return total;
+  }
+
+  syscall(name, args) {
+    // Validate variable-length guest data before it reaches memfs's fixed buffers.
+    if(['fd_read','fd_write','fd_pread'].includes(name)) this.iovecs(args[1],args[2],args[name==='fd_pread'?4:3]);
+    const paths={path_open:[2,3],path_filestat_get:[2,3],path_create_directory:[1,2],path_readlink:[1,2],path_remove_directory:[1,2],path_unlink_file:[1,2]};
+    const checkPath=(ptr,length)=>{if(length>4096)throw new AbortError('WASI 路径超过 4096 字节');this.range(ptr,length);};
+    if(paths[name]) {const [p,n]=paths[name];checkPath(args[p],args[n]);}
+    if(name==='path_rename'){checkPath(args[1],args[2]);checkPath(args[4],args[5]);if(args[2]+args[5]>=8192)throw new AbortError('WASI 路径过长');}
+    if(name==='path_symlink'){checkPath(args[0],args[1]);checkPath(args[3],args[4]);if(args[1]+args[4]>=8192)throw new AbortError('WASI 路径过长');}
+    if(name==='fd_prestat_dir_name'){if(args[2]>8192)throw new AbortError('WASI 路径缓冲区过长');this.range(args[1],args[2]);}
+    return this.exports[name](...args);
+  }
 
   host_write(fd, iovs, iovs_len, nwritten_out) {
     this.hostMem_.check();
-    assert(fd <= 2);
+    assert(fd === 1 || fd === 2);
+    const byteCount=this.iovecs(iovs,iovs_len,nwritten_out);
+    this.reserveOutput(byteCount); // Must happen before creating/decoding any string.
     let size = 0;
     let str = '';
     for (let i = 0; i < iovs_len; ++i) {
@@ -224,13 +260,14 @@ class MemFS {
       size += len;
     }
     this.hostMem_.write32(nwritten_out, size);
-    this.hostWrite(str);
+    this.hostWrite(str, true);
     return ESUCCESS;
   }
 
   host_read(fd, iovs, iovs_len, nread) {
     this.hostMem_.check();
     assert(fd === 0);
+    this.iovecs(iovs,iovs_len,nread);
     let size = 0;
     for (let i = 0; i < iovs_len; ++i) {
       const buf = this.hostMem_.read32(iovs);
@@ -345,8 +382,19 @@ class App {
       'args_get', 'random_get', 'clock_time_get', 'poll_oneoff'
     ]);
 
-    // Fill in some WASI implementations from memfs.
-    Object.assign(wasi_unstable, this.memfs.exports);
+    // Only actual WASI syscalls may cross the guest/host boundary. Never expose
+    // memory, init, AddFileNode, GetPathBuf, or other memfs implementation exports.
+    const fsCalls=['fd_allocate','fd_close','fd_fdstat_get','fd_fdstat_set_flags',
+      'fd_filestat_get','fd_filestat_set_size','fd_pread','fd_prestat_dir_name',
+      'fd_prestat_get','fd_read','fd_readdir','fd_seek','fd_write',
+      'path_create_directory','path_filestat_get','path_open','path_readlink',
+      'path_remove_directory','path_rename','path_symlink','path_unlink_file'];
+    for(const name of fsCalls) wasi_unstable[name]=(...args)=>this.memfs.syscall(name,args);
+    if(this.memfs.programSandbox) {
+      for(const entry of WebAssembly.Module.imports(module)) {
+        if(entry.module!=='wasi_unstable' || entry.kind!=='function' || !Object.hasOwn(wasi_unstable,entry.name)) throw new AbortError(`不允许的程序能力：${entry.module}.${entry.name}`);
+      }
+    }
 
     this.ready = getInstance(module, {wasi_unstable, env}).then(instance => {
       this.instance = instance;
@@ -688,10 +736,12 @@ class API {
     this.memfs = new MemFS({
       compileStreaming : this.compileStreaming,
       hostWrite : this.hostWrite,
+      reserveOutput : options.reserveOutput,
+      programSandbox : options.programSandbox,
       memfsFilename : options.memfs || 'memfs',
     });
     this.ready = this.memfs.ready.then(
-        () => { return this.untar(this.memfs, this.sysrootFilename); });
+        () => options.skipSysroot ? undefined : this.untar(this.memfs, this.sysrootFilename));
   }
 
   hostLog(message) {

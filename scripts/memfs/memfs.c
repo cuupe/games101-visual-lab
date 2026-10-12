@@ -15,6 +15,8 @@
 #define MAX_FDS 4096
 #define MAX_NODES 1024
 #define MAX_PATH 8192
+#define MAX_FILE_BYTES (16u * 1024u * 1024u)
+#define MAX_FILESYSTEM_BYTES (64u * 1024u * 1024u)
 #define MIN_PRESTAT_FDS 3
 #define INVALID_INODE ((__wasi_inode_t)~0)
 
@@ -25,6 +27,7 @@ extern __wasi_errno_t host_read(__wasi_fd_t fd, const __wasi_iovec_t *iovs,
                                  size_t iovs_len, size_t *nread);
 extern void copy_out(void* their_dest, const void* my_src, size_t size);
 extern void copy_in(void* my_dest, const void* their_src, size_t size);
+extern void resource_limit(void);
 
 static void __attribute__((format(printf, 1, 2))) logf(const char *fmt, ...) {
   char buf[1024];
@@ -120,6 +123,7 @@ static FDesc g_fdescs[MAX_FDS];
 static __wasi_inode_t g_next_inode;
 static char g_path_buf[MAX_PATH];
 static Node* g_root_node;
+static __wasi_filesize_t g_file_bytes;
 
 static void InitInodes(void) {
   g_next_inode = 0;
@@ -208,6 +212,7 @@ static NewNodeResult NewEmptyNode(void) {
   ASSERT(inode != INVALID_INODE);
   Node* node = &g_nodes[inode];
   g_next_inode = node->next_free;
+  memset(node, 0, sizeof(*node));
   return (NewNodeResult){.node = node, .inode = inode};
 }
 
@@ -228,6 +233,13 @@ static void DeleteNode(Node* node) {
   tracef("!!  DeleteNode(node:%p)", node);
   ASSERT(node->stat.st_nlink == 0);
   __wasi_inode_t inode = GetInode(node);
+  if (IsRegularFileNode(node)) {
+    g_file_bytes -= node->file.size;
+    free(node->file.data);
+  } else if (IsDirectoryNode(node)) {
+    free(node->dir.dirents);
+  }
+  free(node->name);
   node->next_free = g_next_inode;
   g_next_inode = inode;
 }
@@ -330,11 +342,16 @@ static void EnsureFileSize(Node* node, __wasi_filesize_t new_size) {
   ASSERT(IsRegularFileNode(node));
   __wasi_filesize_t old_size = node->file.size;
   if (new_size > old_size) {
+    if (new_size > MAX_FILE_BYTES || new_size - old_size > MAX_FILESYSTEM_BYTES - g_file_bytes) {
+      resource_limit();
+      abort();
+    }
     void *new_data = realloc(node->file.data, new_size);
     ASSERT(new_data);
     node->file.data = new_data;
     node->file.size = new_size;
     node->stat.st_size = new_size;
+    g_file_bytes += new_size - old_size;
     memset((char*)new_data + old_size, 0, new_size - old_size);
   }
 }
@@ -345,6 +362,11 @@ static void SetFileSize(Node* node, __wasi_filesize_t new_size) {
   if (new_size > old_size) {
     EnsureFileSize(node, new_size);
   } else {
+    if (new_size < old_size) {
+      if (new_size == 0) { free(node->file.data); node->file.data = NULL; }
+      else { void* data = realloc(node->file.data, new_size); ASSERT(data); node->file.data = data; }
+      g_file_bytes -= old_size - new_size;
+    }
     node->file.size = new_size;
     node->stat.st_size = new_size;
   }
@@ -386,7 +408,7 @@ static NewFDResult NewEmptyFD(void) {
 }
 
 static bool IsValidFD(__wasi_fd_t fd) {
-  return fd <= MAX_FDS &&
+  return fd < MAX_FDS &&
          g_fdescs[fd].stat.fs_filetype != __WASI_FILETYPE_UNKNOWN;
 }
 
@@ -616,11 +638,9 @@ WASM_EXPORT __wasi_errno_t fd_prestat_dir_name(__wasi_fd_t fd, char *path,
   ASSERT(fdesc->stat.fs_filetype == __WASI_FILETYPE_DIRECTORY);
   Node* node = GetNode(fdesc->inode);
   size_t len = node->name_len;
-  if (len < path_len) {
-    len = path_len;
-  }
+  if (path_len < len) return __WASI_EINVAL;
   tracef("!!  \"%.*s\"", (int)len, node->name);
-  copy_out(path, &node->name, len);
+  copy_out(path, node->name, len);
   return __WASI_ESUCCESS;
 }
 
@@ -738,6 +758,7 @@ WASM_EXPORT __wasi_errno_t fd_write(__wasi_fd_t fd, const __wasi_ciovec_t *iovs,
   __wasi_iovec_t iovs_copy[iovs_len];
   copy_in(iovs_copy, iovs, sizeof(*iovs) * iovs_len);
   for (size_t i = 0; i < iovs_len; ++i) {
+    if (iovs_copy[i].buf_len > MAX_FILE_BYTES - total_len) { resource_limit(); abort(); }
     total_len += iovs_copy[i].buf_len;
   }
 
@@ -872,7 +893,7 @@ path_open(__wasi_fd_t dirfd, __wasi_lookupflags_t dirflags, const char *path,
   if ((oflags & __WASI_O_TRUNC) && lookup.node) {
     // TODO handle other file types
     ASSERT(IsRegularFileNode(lookup.node));
-    lookup.node->file.size = 0;
+    SetFileSize(lookup.node, 0);
   }
 
   if ((oflags & __WASI_O_CREAT) && !lookup.node) {
