@@ -1,0 +1,42 @@
+.reading-mode{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:17px 0 0}.reading-mode button{font-size:13px;padding:9px 15px;border:1px solid #30435e;border-radius:5px;color:#a6bdd8;background:#122034}.reading-mode button[aria-pressed=true]{background:#27354a;border-color:#8da5ce;color:#e0eafb}.reading-mode>span{font-size:12px;color:#87a0be;margin-left:7px;line-height:1.8}
+.visual-examples{margin:22px 0 28px;border:1px solid #2a4055;border-radius:8px;padding:21px 20px 17px;background:#0f1c2b;content-visibility:auto;contain-intrinsic-size:auto 370px}
+.visual-example-heading,.visual-overview-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.visual-example-heading .eyebrow,.visual-overview-heading .eyebrow{margin:0}
+.visual-example-heading>span:last-child,.visual-overview-heading>span:last-child{font-size:12px;color:#88a1bf;line-height:1.7}
+.course-article .visual-question{font-size:16px;line-height:1.8;color:#d0dff1;margin:11px 0 19px}
+.visual-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.visual-gallery figure{min-width:0;margin:0}
+.diagram-trigger{position:relative;display:block;width:100%;padding:0;border:1px solid #263c52;border-radius:5px;overflow:hidden;background:#0b1421;text-align:left;cursor:zoom-in}
+.diagram-trigger:hover{border-color:#9bb3d1}
+.diagram-trigger:focus-visible,.visual-overview-grid button:focus-visible{outline:2px solid #b9a2ff;outline-offset:3px}
+.visual-gallery img,.visual-overview-grid img{display:block;width:100%;height:auto;aspect-ratio:360/264}
+.diagram-zoom{position:absolute;bottom:8px;right:9px;width:24px;height:24px;display:grid;place-items:center;border-radius:4px;color:#b9cce1;background:#162a3a;opacity:.85;font-size:17px}
+.visual-gallery figcaption{padding:12px 1px 0}
+.visual-gallery figcaption>strong{display:flex;align-items:baseline;gap:8px;color:#d4e1f4;font-size:14px;font-weight:500;line-height:1.7}
+.visual-gallery figcaption>strong>span{font-size:11px;color:#8ce0be;border:1px solid #2d6759;border-radius:3px;padding:0 4px;flex-shrink:0}
+.course-article .visual-gallery figcaption p{font-size:13px;line-height:1.85;color:#96adc7;margin:6px 0 0}
+.visual-mobile-hint{display:none;font-size:12px;color:#849ebb;line-height:1.9;margin-top:13px}
+.lesson-visual-overview{padding:23px 0 26px;border-bottom:1px solid #2b3d54}
+.visual-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
+.visual-overview-grid button{display:block;min-width:0;text-align:left;background:#101c2c;border:1px solid #2c4059;border-radius:7px;overflow:hidden;padding:0;transition:border-color .15s}
+.visual-overview-grid button:hover{border-color:#82dfbd}
+.visual-overview-grid button>span{display:flex;gap:9px;align-items:baseline;padding:12px 13px 14px;font-size:13px;line-height:1.8;color:#c2d3e9}
+.visual-overview-grid small{color:#82dfbd;font-size:11px}
+.visual-overview-grid b{font-size:16px;color:#829dbc;font-weight:400;margin-left:auto}
+.diagram-unavailable{aspect-ratio:360/264;display:grid;place-items:center;padding:20px;color:#e8b095;font-size:14px;line-height:1.8;background:#14202e}
+.diagram-viewer{padding:0;width:min(940px,calc(100vw - 40px));max-height:calc(100dvh - 40px);border:1px solid #4d6684;border-radius:10px;background:#111e2e;color:#d6e4f5;box-shadow:0 25px 100px #000b}
+.diagram-viewer::backdrop{background:#050b14dc;backdrop-filter:blur(5px)}
+.diagram-viewer-inner{padding:23px 28px 25px}
+.diagram-viewer-top{display:flex;justify-content:space-between;gap:20px;font-size:13px;color:#8fa6c2}
+.diagram-viewer-top button{color:#d4e1f2;font-size:13px;white-space:nowrap;padding:2px 4px}
+.course-article .diagram-viewer h2{font-size:23px;margin:14px 0 18px;color:#e1ebf8}
+.diagram-viewer img{display:block;width:100%;height:min(56dvh,540px);object-fit:contain;background:#0b1421;border-radius:5px}
+.course-article .diagram-viewer p{font-size:15px;line-height:1.9;color:#b9cce2;margin:17px 0}
+.diagram-viewer-bottom{display:flex;align-items:center;gap:22px;border-top:1px solid #2c435c;padding-top:17px;font-size:13px}
+.diagram-viewer-bottom button{color:#b9a2ff;padding:5px 0}
+.diagram-viewer-bottom button:disabled{opacity:.3}
+.diagram-viewer-bottom>span{color:#8da5c1;font-variant-numeric:tabular-nums}
+.diagram-viewer-bottom>a{margin-left:auto;color:#82dfbd;font-size:12px}
+@media(max-width:1000px){.visual-gallery,.visual-overview-grid{gap:10px}.visual-examples{padding:19px 15px}.visual-gallery figcaption>strong{font-size:13px}.visual-overview-grid button>span{padding:10px 8px;font-size:12px}}
+@media(max-width:760px){.visual-examples{padding:18px 13px;margin-top:19px;contain-intrinsic-size:auto 440px}.visual-example-heading,.visual-overview-heading{align-items:flex-start;flex-direction:column;gap:4px}.visual-example-heading>span:last-child{display:none}.course-article .visual-question{font-size:15px;line-height:1.85;margin:10px 0 14px}.visual-gallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:7px;gap:12px;scrollbar-width:thin}.visual-gallery figure{flex:0 0 calc(100% - 12px);scroll-snap-align:start}.visual-gallery figcaption>strong{font-size:15px}.course-article .visual-gallery figcaption p{font-size:14px;line-height:1.85}.visual-mobile-hint{display:block}.visual-overview-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding-bottom:6px;scrollbar-width:thin}.visual-overview-grid button{flex:0 0 calc(100% - 25px);scroll-snap-align:start}.visual-overview-grid button>span{font-size:14px;padding:12px}.lesson-visual-overview{padding:21px 0}.diagram-viewer{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.diagram-viewer-inner{padding:20px 16px}.course-article .diagram-viewer h2{font-size:20px;margin:13px 0}.diagram-viewer img{height:auto;max-height:52dvh;aspect-ratio:360/264}.diagram-viewer-bottom{gap:16px;flex-wrap:wrap}.diagram-viewer-bottom>a{width:100%;margin:0}}
+@media(prefers-reduced-motion:reduce){.visual-overview-grid button{transition:none}.visual-gallery,.visual-overview-grid{scroll-behavior:auto}}
