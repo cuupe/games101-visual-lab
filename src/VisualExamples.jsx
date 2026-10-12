@@ -3,10 +3,11 @@ import manifest from '../public/illustrations/manifest.json';
 import './visuals.css';
 
 export const illustrationStats={images:manifest.images,groups:manifest.groups};
+const diagramURL=src=>`${import.meta.env.BASE_URL}${src.replace(/^\/+/, '')}`;
 
 function DiagramImage({image,eager=false}){
  const [failed,setFailed]=useState(false);
- return failed?<div className="diagram-unavailable" role="status">图片加载失败，请刷新或下载原图查看。</div>:<img src={image.src} alt={image.title+'。'+image.caption} width={image.width} height={image.height} loading={eager?'eager':'lazy'} decoding="async" onError={()=>setFailed(true)}/>;
+ return failed?<div className="diagram-unavailable" role="status">图片加载失败，请刷新或下载原图查看。</div>:<img src={diagramURL(image.src)} alt={image.title+'。'+image.caption} width={image.width} height={image.height} loading={eager?'eager':'lazy'} decoding="async" onError={()=>setFailed(true)}/>;
 }
 
 function DiagramViewer({group,initial,onClose,returnFocus}){
@@ -28,7 +29,7 @@ function DiagramViewer({group,initial,onClose,returnFocus}){
    <div className="diagram-viewer-top"><span>{group.section}</span><button onClick={onClose} aria-label="关闭图解">关闭 ×</button></div>
    <h2>{image.title}</h2><DiagramImage key={image.src} image={image} eager/>
    <p id={captionId}>{image.caption}</p>
-   <div className="diagram-viewer-bottom"><button onClick={()=>setIndex(i=>i-1)} disabled={index===0}>← 上一幅</button><span>{index+1} / {group.panels.length}</span><button onClick={()=>setIndex(i=>i+1)} disabled={index===group.panels.length-1}>下一幅 →</button><a href={image.src} download>下载 SVG 原图</a></div>
+   <div className="diagram-viewer-bottom"><button onClick={()=>setIndex(i=>i-1)} disabled={index===0}>← 上一幅</button><span>{index+1} / {group.panels.length}</span><button onClick={()=>setIndex(i=>i+1)} disabled={index===group.panels.length-1}>下一幅 →</button><a href={diagramURL(image.src)} download>下载 SVG 原图</a></div>
   </div>
  </dialog>;
 }
